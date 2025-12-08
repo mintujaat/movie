@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 16px;
+      background: #050505;
+      color: #f5f5f5;
+    }
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+    input, textarea, select {
+      width: 100%;
+      max-width: 420px;
+      margin-bottom: 8px;
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: #111;
+      color: #f5f5f5;
+    }
+    button {
+      padding: 6px 12px;
+      margin: 4px 0;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background: #2563eb;
+      color: #fff;
+      font-size: 14px;
+    }
+    button.danger {
+      background: #dc2626;
+    }
+    button.secondary {
+      background: #4b5563;
+    }
+    .box {
+      border: 1px solid #262626;
+      padding: 12px;
+      margin-bottom: 16px;
+      background: #0b0b0b;
+      max-width: 900px;
+      border-radius: 6px;
+    }
+    .list-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    .list-table th, .list-table td {
+      border: 1px solid #262626;
+      padding: 6px 8px;
+      text-align: left;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+    .badge.green { background:#166534; color:#bbf7d0; }
+    .badge.red { background:#7f1d1d; color:#fecaca; }
+    .badge.gray { background:#1f2937; color:#e5e7eb; }
+    img.thumb {
+      max-width: 120px;
+      max-height: 70px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    pre {
+      background:#0b0b0b;
+      padding:8px;
+      max-width:900px;
+      white-space:pre-wrap;
+      border-radius:4px;
+      border:1px solid #262626;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Admin Panel</h1>
+
+  <!-- ACCESS CODE SECTION -->
+  <div class="box">
+    <h2>Create Access Code</h2>
+    <label>Valid days:</label>
+    <input id="validDays" type="number" value="1" min="1" />
+    <button id="createCodeBtn">Generate Code</button>
+    <div id="codeMsg" style="margin-top:6px;"></div>
+
+    <h3 style="margin-top:16px;">Active Codes</h3>
+    <table class="list-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Expires At</hth>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="activeCodesBody"></tbody>
+    </table>
+
+    <h3 style="margin-top:16px;">Used / Expired Codes</h3>
+    <table class="list-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Expires At</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="usedCodesBody"></tbody>
+    </table>
+  </div>
+
+  <!-- CATEGORY SECTION -->
+  <div class="box">
+    <h2>Manage Categories</h2>
+    <input id="newCategoryInput" placeholder="New category name (e.g. Action, Comedy)" />
+    <button id="addCategoryBtn">Add Category</button>
+
+    <table class="list-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="categoriesBody"></tbody>
+    </table>
+  </div>
+
+  <!-- MOVIES SECTION -->
+  <div class="box">
+    <h2><span id="movieFormTitle">Add Movie</span></h2>
+    <form id="movieForm">
+      <input type="text" id="title" placeholder="Movie title" required /><br />
+      <textarea id="description" placeholder="Description"></textarea><br />
+      <input type="text" id="thumbUrl" placeholder="Thumbnail URL (ImageKit)" required /><br />
+      <input type="text" id="videoUrl" placeholder="Video URL (ImageKit)" required /><br />
+
+      <label>Category:</label>
+      <select id="categorySelect">
+        <!-- options dynamically -->
+      </select><br />
+
+      <button type="submit" id="movieSubmitBtn">Save Movie</button>
+      <button type="button" id="movieResetBtn" class="secondary" style="display:none;">Cancel Edit</button>
+    </form>
+  </div>
+
+  <div class="box">
+    <h2>All Movies</h2>
+    <table class="list-table">
+      <thead>
+        <tr>
+          <th>Thumb</th>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="moviesBody"></tbody>
+    </table>
+  </div>
+
+  <pre id="log"></pre>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp,
+      Timestamp,
+      getDocs,
+      query,
+      orderBy,
+      deleteDoc,
+      doc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDJgg7RhvBCMawO_nfi8DVl3SA9j7FGUsE",
+      authDomain: "movie-406d8.firebaseapp.com",
+      databaseURL: "https://movie-406d8-default-rtdb.firebaseio.com",
+      projectId: "movie-406d8",
+      storageBucket: "movie-406d8.firebasestorage.app",
+      messagingSenderId: "316728310014",
+      appId: "1:316728310014:web:98c07213a6a28811c3cdaf",
+      measurementId: "G-HV143L1C2X"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const logEl = document.getElementById("log");
+    function log(msg) {
+      logEl.textContent += msg + "\n";
+      console.log(msg);
+    }
+
+    function formatDate(ts) {
+      if (!ts) return "-";
+      try {
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        return d.toLocaleString();
+      } catch {
+        return "-";
+      }
+    }
+
+    // ---------------- ACCESS CODES ----------------
+    const validDaysInput = document.getElementById("validDays");
+    const createCodeBtn = document.getElementById("createCodeBtn");
+    const codeMsg = document.getElementById("codeMsg");
+    const activeCodesBody = document.getElementById("activeCodesBody");
+    const usedCodesBody = document.getElementById("usedCodesBody");
+
+    function generateRandomCode(length = 8) {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "";
+      for (let i = 0; i < length; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    createCodeBtn.onclick = async () => {
+      try {
+        const days = parseInt(validDaysInput.value || "1", 10);
+        if (isNaN(days) || days <= 0) {
+          alert("Days must be >= 1");
+          return;
+        }
+        const code = generateRandomCode(8);
+
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+        await addDoc(collection(db, "accessCodes"), {
+          code,
+          used: false,
+          createdAt: serverTimestamp(),
+          expiresAt: Timestamp.fromDate(expiresAt)
+        });
+
+        codeMsg.textContent = `New code: ${code} (valid ${days} day(s))`;
+        log("Code created: " + code);
+        await loadCodes();
+      } catch (err) {
+        console.error(err);
+        log("Error (code): " + err.message);
+        alert("Error creating code: " + err.message);
+      }
+    };
+
+    async function deleteCode(id) {
+      if (!confirm("Delete this code?")) return;
+      try {
+        await deleteDoc(doc(db, "accessCodes", id));
+        await loadCodes();
+      } catch (err) {
+        console.error(err);
+        alert("Error deleting code: " + err.message);
+      }
+    }
+
+    async function loadCodes() {
+      activeCodesBody.innerHTML = "";
+      usedCodesBody.innerHTML = "";
+
+      const qCodes = query(collection(db, "accessCodes"), orderBy("createdAt", "desc"));
+      const snap = await getDocs(qCodes);
+      const nowMs = Date.now();
+
+      snap.forEach((docSnap) => {
+        const data = docSnap.data();
+        const tr = document.createElement("tr");
+        const code = data.code || "";
+        const expiresAt = data.expiresAt;
+        const expiresMs = expiresAt ? expiresAt.toMillis() : 0;
+        const isExpired = expiresMs && expiresMs < nowMs;
+        const isUsed = !!data.used;
+
+        let statusText = "";
+        let statusClass = "gray";
+        if (isUsed) {
+          statusText = "Used";
+          statusClass = "red";
+        } else if (isExpired) {
+          statusText = "Expired";
+          statusClass = "red";
+        } else {
+          statusText = "Active";
+          statusClass = "green";
+        }
+
+        tr.innerHTML = `
+          <td>${code}</td>
+          <td>${formatDate(expiresAt)}</td>
+          <td><span class="badge ${statusClass}">${statusText}</span></td>
+          <td><button class="danger" data-id="${docSnap.id}">Delete</button></td>
+        `;
+
+        const btn = tr.querySelector("button");
+        btn.onclick = () => deleteCode(docSnap.id);
+
+        if (!isUsed && !isExpired) {
+          activeCodesBody.appendChild(tr);
+        } else {
+          usedCodesBody.appendChild(tr);
+        }
+      });
+    }
+
+    // ---------------- CATEGORIES ----------------
+    const newCategoryInput = document.getElementById("newCategoryInput");
+    const addCategoryBtn = document.getElementById("addCategoryBtn");
+    const categoriesBody = document.getElementById("categoriesBody");
+    const categorySelect = document.getElementById("categorySelect");
+
+    let categoriesList = []; // array of {id, name, createdAt}
+
+    function setCategoryOptions() {
+      categorySelect.innerHTML = "";
+      const defaultOpt = document.createElement("option");
+      defaultOpt.value = "";
+      defaultOpt.textContent = "Select category (optional)";
+      categorySelect.appendChild(defaultOpt);
+
+      categoriesList.forEach((cat) => {
+        const opt = document.createElement("option");
+        opt.value = cat.name;
+        opt.textContent = cat.name;
+        categorySelect.appendChild(opt);
+      });
+    }
+
+    function ensureCategoryOption(name) {
+      if (!name) return;
+      const exists = Array.from(categorySelect.options).some(
+        (opt) => opt.value === name
+      );
+      if (!exists) {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name + " (deleted category)";
+        categorySelect.appendChild(opt);
+      }
+    }
+
+    addCategoryBtn.onclick = async () => {
+      const name = (newCategoryInput.value || "").trim();
+      if (!name) {
+        alert("Category name required");
+        return;
+      }
+      try {
+        await addDoc(collection(db, "categories"), {
+          name,
+          createdAt: serverTimestamp(),
+        });
+        newCategoryInput.value = "";
+        await loadCategories();
+      } catch (err) {
+        console.error(err);
+        alert("Error adding category: " + err.message);
+      }
+    };
+
+    async function deleteCategory(id, name) {
+      if (!confirm(`Delete category "${name}"? (Movies will keep this name)`)) return;
+      try {
+        await deleteDoc(doc(db, "categories", id));
+        await loadCategories();
+      } catch (err) {
+        console.error(err);
+        alert("Error deleting category: " + err.message);
+      }
+    }
+
+    async function loadCategories() {
+      categoriesBody.innerHTML = "";
+      categoriesList = [];
+
+      const qCats = query(collection(db, "categories"), orderBy("createdAt", "desc"));
+      const snap = await getDocs(qCats);
+
+      snap.forEach((docSnap) => {
+        const data = docSnap.data();
+        categoriesList.push({
+          id: docSnap.id,
+          name: data.name || "",
+          createdAt: data.createdAt || null,
+        });
+      });
+
+      categoriesList.forEach((cat) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${cat.name}</td>
+          <td>${formatDate(cat.createdAt)}</td>
+          <td><button class="danger">Delete</button></td>
+        `;
+        tr.querySelector("button").onclick = () => deleteCategory(cat.id, cat.name);
+        categoriesBody.appendChild(tr);
+      });
+
+      setCategoryOptions();
+    }
+
+    // ---------------- MOVIES ----------------
+    const movieForm = document.getElementById("movieForm");
+    const titleInput = document.getElementById("title");
+    const descInput = document.getElementById("description");
+    const thumbInput = document.getElementById("thumbUrl");
+    const videoInput = document.getElementById("videoUrl");
+    const moviesBody = document.getElementById("moviesBody");
+    const movieFormTitle = document.getElementById("movieFormTitle");
+    const movieSubmitBtn = document.getElementById("movieSubmitBtn");
+    const movieResetBtn = document.getElementById("movieResetBtn");
+
+    let currentEditMovieId = null;
+    let moviesCache = []; // store movies for quick edit
+
+    function setMovieFormMode(mode, data = null) {
+      if (mode === "edit" && data) {
+        currentEditMovieId = data.id;
+        movieFormTitle.textContent = "Edit Movie";
+        movieSubmitBtn.textContent = "Update Movie";
+        movieResetBtn.style.display = "inline-block";
+
+        titleInput.value = data.title || "";
+        descInput.value = data.description || "";
+        thumbInput.value = data.thumbnailUrl || "";
+        videoInput.value = data.videoUrl || "";
+
+        setCategoryOptions(); // ensure fresh options
+        categorySelect.value = data.category || "";
+        ensureCategoryOption(data.category || "");
+      } else {
+        currentEditMovieId = null;
+        movieFormTitle.textContent = "Add Movie";
+        movieSubmitBtn.textContent = "Save Movie";
+        movieResetBtn.style.display = "none";
+        movieForm.reset();
+        setCategoryOptions();
+      }
+    }
+
+    movieResetBtn.onclick = () => {
+      setMovieFormMode("create");
+    };
+
+    movieForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      logEl.textContent = "";
+
+      const title = titleInput.value.trim();
+      const description = descInput.value.trim();
+      const thumbUrl = thumbInput.value.trim();
+      const videoUrl = videoInput.value.trim();
+      const category = (categorySelect.value || "").trim();
+
+      if (!title || !thumbUrl || !videoUrl) {
+        alert("Title, thumbnail URL and video URL required");
+        return;
+      }
+
+      try {
+        if (currentEditMovieId) {
+          log("Updating movie...");
+          await updateDoc(doc(db, "movies", currentEditMovieId), {
+            title,
+            description,
+            thumbnailUrl: thumbUrl,
+            videoUrl,
+            category: category || "Other"
+          });
+          log("Movie updated!");
+        } else {
+          log("Saving new movie...");
+          await addDoc(collection(db, "movies"), {
+            title,
+            description,
+            thumbnailUrl: thumbUrl,
+            videoUrl,
+            category: category || "Other",
+            createdAt: serverTimestamp()
+          });
+          log("Movie saved!");
+        }
+
+        alert("Movie saved successfully!");
+        setMovieFormMode("create");
+        await loadMovies();
+      } catch (err) {
+        console.error(err);
+        log("Error (movie): " + err.message);
+        alert("Error saving movie: " + err.message);
+      }
+    });
+
+    async function deleteMovie(id) {
+      if (!confirm("Delete this movie?")) return;
+      try {
+        await deleteDoc(doc(db, "movies", id));
+        await loadMovies();
+      } catch (err) {
+        console.error(err);
+        alert("Error deleting movie: " + err.message);
+      }
+    }
+
+    async function loadMovies() {
+      moviesBody.innerHTML = "";
+      moviesCache = [];
+
+      const qMovies = query(collection(db, "movies"), orderBy("createdAt", "desc"));
+      const snap = await getDocs(qMovies);
+
+      snap.forEach((docSnap) => {
+        const data = docSnap.data();
+        const movie = {
+          id: docSnap.id,
+          title: data.title || "",
+          description: data.description || "",
+          thumbnailUrl: data.thumbnailUrl || "",
+          videoUrl: data.videoUrl || "",
+          category: data.category || "Other",
+          createdAt: data.createdAt || null
+        };
+        moviesCache.push(movie);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${movie.thumbnailUrl ? `<img src="${movie.thumbnailUrl}" class="thumb" />` : "-"}</td>
+          <td>${movie.title}</td>
+          <td>${movie.category}</td>
+          <td>${formatDate(movie.createdAt)}</td>
+          <td>
+            <button class="secondary" data-action="edit">Edit</button>
+            <button class="danger" data-action="delete">Delete</button>
+          </td>
+        `;
+
+        const editBtn = tr.querySelector('button[data-action="edit"]');
+        const delBtn = tr.querySelector('button[data-action="delete"]');
+
+        editBtn.onclick = () => {
+          setMovieFormMode("edit", movie);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        };
+
+        delBtn.onclick = () => deleteMovie(movie.id);
+
+        moviesBody.appendChild(tr);
+      });
+    }
+
+    // ---- INITIAL LOAD ----
+    (async () => {
+      await loadCodes();
+      await loadCategories();
+      await loadMovies();
+      setMovieFormMode("create");
+    })();
+  </script>
+</body>
+</html>
