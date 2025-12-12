@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>MintuFlix – Movies</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <title>MintuFlix — Movies (Wistia + MP4)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     * { box-sizing: border-box; margin:0; padding:0; }
     body {
@@ -12,335 +12,82 @@
       color:#fff;
       min-height:100vh;
     }
-
-    .navbar {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:12px 4vw;
-      background:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0));
-      position:sticky;
-      top:0;
-      z-index:5;
-    }
-    .logo {
-      font-size:24px;
-      font-weight:800;
-      letter-spacing:1px;
-      color:#e50914;
-    }
-    .logo span {
-      color:#fff;
-      font-weight:500;
-      font-size:18px;
-    }
-    .session-status {
-      font-size:12px;
-      opacity:0.8;
-      text-align:right;
-    }
+    .navbar { display:flex; align-items:center; justify-content:space-between; padding:12px 4vw; background:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0)); position:sticky; top:0; z-index:5; }
+    .logo { font-size:24px; font-weight:800; letter-spacing:1px; color:#e50914; }
+    .logo span { color:#fff; font-weight:500; font-size:18px; }
+    .session-status { font-size:12px; opacity:0.8; text-align:right; }
     .session-status span { color:#22c55e; }
-
-    .hero-shadow {
-      position:fixed;
-      inset:0;
-      background:radial-gradient(circle at top, rgba(229,9,20,0.35), transparent 55%);
-      opacity:0.4;
-      pointer-events:none;
-      z-index:-1;
-    }
-
+    .hero-shadow { position:fixed; inset:0; background:radial-gradient(circle at top, rgba(229,9,20,0.35), transparent 55%); opacity:0.4; pointer-events:none; z-index:-1; }
     main { padding:12px 4vw 32px; }
+    .section-title { font-size:18px; font-weight:600; margin-bottom:10px; }
 
-    .section-title {
-      font-size:18px;
-      font-weight:600;
-      margin-bottom:10px;
-    }
-
-    /* Top selected movie section */
-    .player-section {
-      max-width:1000px;
-      margin:0 auto 24px auto;
-    }
-    .player-container {
-      background:#000;
-      position:relative;
-      width:100%;
-      aspect-ratio:16/9;
-      border-radius:10px;
-      overflow:hidden;
-      box-shadow:0 16px 40px rgba(0,0,0,0.85);
-    }
-    .player-container video {
-      width:100%;
-      height:100%;
-      display:block;
-      background:#000;
-    }
-    .player-controls {
-      position:absolute;
-      left:0; right:0; bottom:0;
-      padding:8px 10px;
-      background:linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.35), transparent);
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-    .controls-row-top {
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .controls-row-bottom {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:8px;
-      font-size:11px;
-    }
-    .ctrl-btn {
-      border:none;
-      background:rgba(15,23,42,0.9);
-      color:#e5e7eb;
-      border-radius:999px;
-      padding:4px 8px;
-      font-size:11px;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
-    }
-    .ctrl-btn.primary {
-      background:#e50914;
-      color:#fff;
-      font-weight:600;
-    }
+    /* Player */
+    .player-section { max-width:1000px; margin:0 auto 24px auto; }
+    .player-container { background:#000; position:relative; width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden; box-shadow:0 16px 40px rgba(0,0,0,0.85); }
+    #playerVideo, #wistiaPlayerBox { width:100%; height:100%; display:block; background:#000; border:0; }
+    .player-controls { position:absolute; left:0; right:0; bottom:0; padding:8px 10px; background:linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.35), transparent); display:flex; flex-direction:column; gap:4px; }
+    .controls-row-top { display:flex; align-items:center; gap:8px; }
+    .controls-row-bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:11px; }
+    .ctrl-btn { border:none; background:rgba(15,23,42,0.9); color:#e5e7eb; border-radius:999px; padding:4px 8px; font-size:11px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; }
+    .ctrl-btn.primary { background:#e50914; color:#fff; font-weight:600; }
     .ctrl-btn.small { padding:3px 6px; font-size:11px; }
-
-    .progress-wrap {
-      display:flex;
-      align-items:center;
-      gap:6px;
-      width:100%;
-    }
-    .progress-bar {
-      -webkit-appearance:none;
-      appearance:none;
-      width:100%;
-      height:4px;
-      border-radius:999px;
-      background:rgba(55,65,81,0.9);
-      outline:none;
-      cursor:pointer;
-    }
-    .progress-bar::-webkit-slider-thumb {
-      -webkit-appearance:none;
-      appearance:none;
-      width:10px; height:10px;
-      border-radius:50%;
-      background:#e50914;
-      cursor:pointer;
-      margin-top:-3px;
-    }
-    .progress-bar::-moz-range-thumb {
-      width:10px; height:10px;
-      border-radius:50%;
-      background:#e50914;
-      cursor:pointer;
-    }
+    .progress-wrap { display:flex; align-items:center; gap:6px; width:100%; }
+    .progress-bar { -webkit-appearance:none; appearance:none; width:100%; height:4px; border-radius:999px; background:rgba(55,65,81,0.9); outline:none; cursor:pointer; }
+    .progress-bar::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:10px; height:10px; border-radius:50%; background:#e50914; cursor:pointer; margin-top:-3px; }
     .time-text { white-space:nowrap; }
-    .fs-label { font-size:11px; }
+    .player-meta-block { margin-top:10px; }
+    .player-title { font-size:20px; font-weight:700; margin-bottom:2px; }
+    .player-category { font-size:12px; color:#a5b4fc; margin-bottom:2px; }
+    .player-meta { font-size:11px; opacity:0.75; margin-bottom:8px; }
+    .player-description { font-size:13px; color:#d1d5db; line-height:1.45; margin-bottom:12px; }
+    .more-like-row { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:8px; margin-top:8px; }
+    .more-like-card { position:relative; border-radius:4px; overflow:hidden; cursor:pointer; background:#1f2937; aspect-ratio:16/9; }
+    .more-like-card img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.2s ease, opacity 0.2s ease; }
 
-    .player-meta-block {
-      margin-top:10px;
-    }
-    .player-title {
-      font-size:20px;
-      font-weight:700;
-      margin-bottom:2px;
-    }
-    .player-category {
-      font-size:12px;
-      color:#a5b4fc;
-      margin-bottom:2px;
-    }
-    .player-meta {
-      font-size:11px;
-      opacity:0.75;
-      margin-bottom:8px;
-    }
-    .player-description {
-      font-size:13px;
-      color:#d1d5db;
-      line-height:1.45;
-      margin-bottom:12px;
-    }
+    /* Category & grid */
+    .category-bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; margin-top:4px; }
+    .chip { padding:4px 10px; border-radius:999px; font-size:12px; border:1px solid #4b5563; background:#111827; color:#e5e7eb; cursor:pointer; transition:background 0.15s ease, color 0.15s ease, transform 0.1s ease; }
+    .chip:hover { transform:translateY(-1px); background:#1f2937; }
+    .chip.active { background:#e50914; border-color:#e50914; color:#fff; }
+    .movies-row { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); grid-gap:10px; }
+    @media (min-width:768px){ .movies-row { grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); grid-gap:14px; } }
+    .movie-card { position:relative; border-radius:6px; overflow:hidden; cursor:pointer; background:#141414; transition:transform 0.2s ease, box-shadow 0.2s ease; aspect-ratio:16/9; }
+    .movie-card img { width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.01); transition:transform 0.25s ease, opacity 0.2s ease; }
+    .movie-card::after { content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.05)); opacity:0.9; transition:opacity 0.25s ease; }
+    .movie-info { position:absolute; left:8px; right:8px; bottom:6px; z-index:2; display:flex; flex-direction:column; gap:2px; }
+    .movie-title { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .movie-category-pill { font-size:10px; display:inline-block; padding:1px 6px; border-radius:999px; background:rgba(15,23,42,0.9); color:#e5e7eb; max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .movie-card:hover { transform:translateY(-3px) scale(1.03); box-shadow:0 12px 24px rgba(0,0,0,0.7); }
+    .movie-card:hover img { transform:scale(1.08); opacity:0.9; }
+    .empty-state { font-size:14px; color:#9ca3af; margin-top:20px; }
+    @media (max-width:600px){ .controls-row-bottom { flex-direction:column; align-items:flex-start; gap:4px; } }
 
-    .more-like-title {
-      font-size:14px;
-      font-weight:600;
-      margin-bottom:8px;
-    }
-    .more-like-row {
-      display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
-      gap:8px;
-    }
-    .more-like-card {
-      position:relative;
-      border-radius:4px;
-      overflow:hidden;
-      cursor:pointer;
-      background:#1f2937;
-      aspect-ratio:16/9;
-    }
-    .more-like-card img {
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-      transition:transform 0.2s ease, opacity 0.2s ease;
-    }
-    .more-like-card:hover img {
-      transform:scale(1.05);
-      opacity:0.9;
-    }
+    /* search row */
+    .search-row { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+    .search-row input { padding:8px; border-radius:8px; border:1px solid #222; background:#071028; color:#fff; min-width:0; flex:1; }
+    .search-row button { padding:8px 12px; border-radius:8px; border:none; background:#e50914; color:#fff; cursor:pointer; }
 
-    /* Category chips + grid */
-    .category-bar {
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-bottom:14px;
-      margin-top:4px;
-    }
-    .chip {
-      padding:4px 10px;
-      border-radius:999px;
-      font-size:12px;
-      border:1px solid #4b5563;
-      background:#111827;
-      color:#e5e7eb;
-      cursor:pointer;
-      transition:background 0.15s ease, color 0.15s ease, transform 0.1s ease;
-    }
-    .chip:hover {
-      transform:translateY(-1px);
-      background:#1f2937;
-    }
-    .chip.active {
-      background:#e50914;
-      border-color:#e50914;
-      color:#fff;
-    }
-
-    .movies-row {
-      display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));
-      grid-gap:10px;
-    }
-    @media (min-width:768px){
-      .movies-row {
-        grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
-        grid-gap:14px;
-      }
-    }
-
-    .movie-card{
-      position:relative;
-      border-radius:6px;
-      overflow:hidden;
-      cursor:pointer;
-      background:#141414;
-      transition:transform 0.2s ease, box-shadow 0.2s ease;
-      aspect-ratio:16/9;
-    }
-    .movie-card img{
-      width:100%; height:100%;
-      object-fit:cover;
-      display:block;
-      transform:scale(1.01);
-      transition:transform 0.25s ease, opacity 0.2s ease;
-    }
-    .movie-card::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.05));
-      opacity:0.9;
-      transition:opacity 0.25s ease;
-    }
-    .movie-info{
-      position:absolute;
-      left:8px; right:8px; bottom:6px;
-      z-index:2;
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-    }
-    .movie-title{
-      font-size:13px;
-      font-weight:600;
-      text-shadow:0 0 12px rgba(0,0,0,0.9);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .movie-category-pill{
-      font-size:10px;
-      display:inline-block;
-      padding:1px 6px;
-      border-radius:999px;
-      background:rgba(15,23,42,0.9);
-      color:#e5e7eb;
-      max-width:60%;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .movie-card:hover{
-      transform:translateY(-3px) scale(1.03);
-      box-shadow:0 12px 24px rgba(0,0,0,0.7);
-    }
-    .movie-card:hover img{
-      transform:scale(1.08);
-      opacity:0.9;
-    }
-    .movie-card:hover::after{ opacity:1; }
-
-    .empty-state{
-      font-size:14px;
-      color:#9ca3af;
-      margin-top:20px;
-    }
-
-    @media (max-width:600px){
-      .controls-row-bottom{
-        flex-direction:column;
-        align-items:flex-start;
-        gap:4px;
-      }
-    }
   </style>
 </head>
 <body>
   <div class="hero-shadow"></div>
-
   <header class="navbar">
     <div class="logo">MINTU<span>FLIX</span></div>
-    <div class="session-status">
-      Access: <span id="sessionStatusText">Checking…</span>
-    </div>
+    <div class="session-status">Access: <span id="sessionStatusText">Checking…</span></div>
   </header>
 
   <main>
-    <!-- TOP SELECTED MOVIE AREA -->
+    <!-- PLAYER -->
     <section id="playerSection" class="player-section" style="display:none;">
       <div id="playerContainer" class="player-container">
-        <video id="playerVideo"></video>
+        <!-- HTML5 video (for direct MP4 links) -->
+        <video id="playerVideo" playsinline webkit-playsinline></video>
 
-        <div class="player-controls">
+        <!-- Wistia container (hidden until needed) -->
+        <div id="wistiaPlayerBox" style="width:100%;height:100%;display:none;"></div>
+
+        <!-- Controls (work for HTML5 video only) -->
+        <div class="player-controls" id="playerControls">
           <div class="controls-row-top">
             <button id="playPauseBtn" class="ctrl-btn primary">▶ Play</button>
             <button id="back10Btn" class="ctrl-btn small">« 10s</button>
@@ -352,9 +99,7 @@
               <input id="progressBar" class="progress-bar" type="range" min="0" max="100" value="0" />
               <span id="timeTotal" class="time-text">0:00</span>
             </div>
-            <button id="fullscreenBtn" class="ctrl-btn small">
-              <span class="fs-label">Fullscreen</span>
-            </button>
+            <button id="fullscreenBtn" class="ctrl-btn small"><span class="fs-label">Fullscreen</span></button>
           </div>
         </div>
       </div>
@@ -372,15 +117,17 @@
       </div>
     </section>
 
-    <!-- LIST SECTION -->
-    <h2 class="section-title">Movies</h2>
-
-    <div id="categoryBar" class="category-bar"></div>
-
-    <div id="moviesGrid" class="movies-row"></div>
-    <div id="emptyState" class="empty-state" style="display:none;">
-      No movies available yet.
+    <!-- Search + categories -->
+    <div class="search-row">
+      <input id="searchBox" placeholder="Search movies by title..." />
+      <button id="searchBtn">Search</button>
+      <button id="clearSearchBtn" style="background:#4b5563;margin-left:6px;">Clear</button>
     </div>
+
+    <h2 class="section-title">Movies</h2>
+    <div id="categoryBar" class="category-bar"></div>
+    <div id="moviesGrid" class="movies-row"></div>
+    <div id="emptyState" class="empty-state" style="display:none;">No movies available yet.</div>
   </main>
 
   <script type="module">
@@ -393,6 +140,7 @@
       orderBy
     } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
+    // FIREBASE CONFIG (same as your admin)
     const firebaseConfig = {
       apiKey: "AIzaSyDJgg7RhvBCMawO_nfi8DVl3SA9j7FGUsE",
       authDomain: "movie-406d8.firebaseapp.com",
@@ -404,9 +152,11 @@
       measurementId: "G-HV143L1C2X"
     };
 
+    // Init
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // DOM
     const moviesGrid = document.getElementById("moviesGrid");
     const emptyState = document.getElementById("emptyState");
     const sessionStatusText = document.getElementById("sessionStatusText");
@@ -415,6 +165,8 @@
     const playerSection = document.getElementById("playerSection");
     const playerContainer = document.getElementById("playerContainer");
     const playerVideo = document.getElementById("playerVideo");
+    const wistiaPlayerBox = document.getElementById("wistiaPlayerBox");
+    const playerControls = document.getElementById("playerControls");
     const playPauseBtn = document.getElementById("playPauseBtn");
     const back10Btn = document.getElementById("back10Btn");
     const forward10Btn = document.getElementById("forward10Btn");
@@ -430,23 +182,27 @@
     const moreLikeSection = document.getElementById("moreLikeSection");
     const moreLikeRow = document.getElementById("moreLikeRow");
 
+    const searchBox = document.getElementById("searchBox");
+    const searchBtn = document.getElementById("searchBtn");
+    const clearSearchBtn = document.getElementById("clearSearchBtn");
+
     let allMovies = [];
     let activeCategory = "All";
     let isUserScrubbing = false;
+    let currentMovie = null;
+    let wistiaScriptLoaded = false;
 
-    // ---------- SESSION ----------
+    // ---------- Session (unchanged) ----------
     function getSession() {
       const raw = localStorage.getItem("movieAppSession");
       if (!raw) return null;
       try { return JSON.parse(raw); } catch { return null; }
     }
-
     function handleExpiredSession() {
       localStorage.removeItem("movieAppSession");
       alert("Access code expired. Please enter a new code.");
       window.location.href = "enter-code.html";
     }
-
     function ensureActiveSession(initialCheck = false) {
       const session = getSession();
       if (!session) {
@@ -465,15 +221,11 @@
       sessionStatusText.textContent = `Active (~${remainingMinutes} min left)`;
       return true;
     }
-
     function startSessionWatcher() {
-      setInterval(() => {
-        const ok = ensureActiveSession(false);
-        if (!ok) { /* redirect handled */ }
-      }, 30000);
+      setInterval(() => { ensureActiveSession(false); }, 30000);
     }
 
-    // ---------- HELPERS ----------
+    // ---------- Helpers ----------
     function formatDate(ts) {
       if (!ts) return "";
       try {
@@ -481,7 +233,6 @@
         return d.toLocaleString();
       } catch { return ""; }
     }
-
     function formatTime(seconds) {
       if (!isFinite(seconds)) return "0:00";
       const s = Math.floor(seconds % 60);
@@ -491,100 +242,75 @@
       if (h > 0) return `${h}:${two(m)}:${two(s)}`;
       return `${m}:${two(s)}`;
     }
+    function shuffleArray(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-    function shuffleArray(arr) {
-      const a = arr.slice();
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
-    }
-
-    // ---------- CATEGORY BAR ----------
+    // ---------- Categories ----------
     function buildCategoryBar() {
       const categories = new Set();
-      allMovies.forEach((m) => {
-        const c = (m.category || "Other").trim();
-        if (c) categories.add(c);
-      });
+      allMovies.forEach((m) => { const c = (m.category || "Other").trim(); if (c) categories.add(c); });
       const cats = ["All", ...Array.from(categories).sort()];
-
       categoryBar.innerHTML = "";
       cats.forEach((c) => {
         const chip = document.createElement("button");
         chip.textContent = c;
         chip.className = "chip" + (c === activeCategory ? " active" : "");
-        chip.addEventListener("click", () => {
-          activeCategory = c;
-          buildCategoryBar();
-          renderMoviesGrid();
-        });
+        chip.addEventListener("click", () => { activeCategory = c; buildCategoryBar(); renderMoviesGrid(); });
         categoryBar.appendChild(chip);
       });
     }
 
-    // ---------- LOAD + GRID ----------
+    // ---------- Load movies ----------
     async function loadMovies() {
       const ok = ensureActiveSession(true);
       if (!ok) return;
-
-      const qMovies = query(collection(db, "movies"), orderBy("createdAt", "desc"));
-      const snap = await getDocs(qMovies);
-
-      allMovies = [];
-      snap.forEach((docSnap) => {
-        const data = docSnap.data();
-        allMovies.push({
-          id: docSnap.id,
-          title: data.title || "",
-          description: data.description || "",
-          thumbnailUrl: data.thumbnailUrl || "",
-          videoUrl: data.videoUrl || "",
-          category: data.category || "Other",
-          createdAt: data.createdAt || null
+      try {
+        const qMovies = query(collection(db, "movies"), orderBy("createdAt", "desc"));
+        const snap = await getDocs(qMovies);
+        allMovies = [];
+        snap.forEach((docSnap) => {
+          const data = docSnap.data();
+          allMovies.push({
+            id: docSnap.id,
+            title: data.title || "",
+            description: data.description || "",
+            thumbnailUrl: data.thumbnailUrl || "",
+            videoUrl: data.videoUrl || "",
+            category: data.category || "Other",
+            createdAt: data.createdAt || null
+          });
         });
-      });
-
-      if (allMovies.length === 0) {
+        if (allMovies.length === 0) {
+          emptyState.style.display = "block";
+          playerSection.style.display = "none";
+        } else {
+          emptyState.style.display = "none";
+        }
+        buildCategoryBar();
+        renderMoviesGrid();
+      } catch (e) {
+        console.error(e);
         emptyState.style.display = "block";
-        playerSection.style.display = "none";
-      } else {
-        emptyState.style.display = "none";
+        emptyState.textContent = "Failed to load movies.";
       }
-
-      buildCategoryBar();
-      renderMoviesGrid();
     }
 
     function renderMoviesGrid() {
       moviesGrid.innerHTML = "";
-
-      const filtered = activeCategory === "All"
-        ? allMovies
-        : allMovies.filter((m) => (m.category || "Other") === activeCategory);
-
+      const filtered = activeCategory === "All" ? allMovies : allMovies.filter((m) => (m.category || "Other") === activeCategory);
       filtered.forEach((movie) => {
         const card = document.createElement("div");
         card.className = "movie-card";
         const cat = movie.category || "Other";
-
         card.innerHTML = `
-          <img src="${movie.thumbnailUrl}" alt="${movie.title}">
+          <img src="${movie.thumbnailUrl || ''}" alt="${movie.title || ''}">
           <div class="movie-info">
-            <div class="movie-title">${movie.title}</div>
+            <div class="movie-title">${movie.title || ''}</div>
             <div class="movie-category-pill">${cat}</div>
           </div>
         `;
-
-        card.addEventListener("click", () => {
-          openPlayer(movie);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-
+        card.addEventListener("click", () => { openPlayer(movie); window.scrollTo({ top: 0, behavior: "smooth" }); });
         moviesGrid.appendChild(card);
       });
-
       if (filtered.length === 0 && allMovies.length > 0) {
         emptyState.style.display = "block";
         emptyState.textContent = "No movies in this category.";
@@ -594,108 +320,133 @@
       }
     }
 
-    // ---------- PLAYER ----------
-    let currentMovie = null;
+    // ---------- Wistia helpers ----------
+    function extractWistiaHash(input) {
+      if (!input) return null;
+      input = String(input).trim();
+      let m = input.match(/wistia_async_([A-Za-z0-9_-]{6,})/);
+      if (m && m[1]) return m[1];
+      m = input.match(/medias\/([A-Za-z0-9_-]{6,})/);
+      if (m && m[1]) return m[1];
+      m = input.match(/([A-Za-z0-9_-]{6,12})/);
+      if (m && m[1]) return m[1];
+      return null;
+    }
+    function isProbablyWistia(input) {
+      if (!input) return false;
+      return /wistia|medias/i.test(input) || !!extractWistiaHash(input);
+    }
+    function ensureWistiaScript() {
+      return new Promise((resolve) => {
+        if (wistiaScriptLoaded || window._wq) { wistiaScriptLoaded = true; return resolve(); }
+        const s = document.createElement('script');
+        s.src = "https://fast.wistia.com/assets/external/E-v1.js";
+        s.async = true;
+        s.onload = () => { wistiaScriptLoaded = true; resolve(); };
+        s.onerror = () => { wistiaScriptLoaded = true; resolve(); };
+        document.head.appendChild(s);
+        setTimeout(() => { wistiaScriptLoaded = true; resolve(); }, 1000);
+      });
+    }
 
-    function openPlayer(movie) {
+    // ---------- Player logic (MP4 vs Wistia) ----------
+    function stopHtmlVideo() {
+      try {
+        playerVideo.pause();
+        playerVideo.removeAttribute('src');
+        playerVideo.load();
+      } catch (e) {}
+    }
+
+    function removeWistiaEmbed() {
+      try {
+        // remove DOM inside wistiaPlayerBox
+        wistiaPlayerBox.innerHTML = '';
+        wistiaPlayerBox.style.display = 'none';
+      } catch (e) {}
+    }
+
+    async function openPlayer(movie) {
       ensureActiveSession();
-
       currentMovie = movie;
-      playerVideo.src = movie.videoUrl || "";
-      playerVideo.currentTime = 0;
-      // Default: auto play start
-      playerVideo.play().catch(() => {});
-      updatePlayPauseLabel();
+      const url = (movie.videoUrl || "").trim();
 
+      // determine type
+      const useWistia = isProbablyWistia(url) && !url.toLowerCase().endsWith('.mp4');
+
+      // reset both
+      removeWistiaEmbed();
+      stopHtmlVideo();
+      playerVideo.style.display = 'none';
+      playerControls.style.display = 'none';
+
+      // update meta
       playerTitle.textContent = movie.title || "";
       playerDescription.textContent = movie.description || "";
       playerCategory.textContent = movie.category ? "Category: " + movie.category : "";
       playerMeta.textContent = movie.createdAt ? "Added: " + formatDate(movie.createdAt) : "";
 
-      progressBar.value = 0;
-      timeCurrent.textContent = "0:00";
-      timeTotal.textContent = "0:00";
-
+      // build more-like
       buildMoreLike(movie);
       playerSection.style.display = "block";
-    }
 
-    function buildMoreLike(movie) {
-      const others = shuffleArray(
-        allMovies.filter((m) => m.id !== movie.id)
-      );
-      moreLikeRow.innerHTML = "";
-
-      if (others.length === 0) {
-        moreLikeSection.style.display = "none";
-        return;
+      if (useWistia) {
+        // Wistia flow
+        const hash = extractWistiaHash(url);
+        if (!hash) {
+          alert("Wistia link invalid.");
+          return;
+        }
+        // show wistia box
+        wistiaPlayerBox.style.display = 'block';
+        // inject embed div (Wistia auto-init when script present)
+        wistiaPlayerBox.innerHTML = `
+          <div class="wistia_responsive_wrapper" style="width:100%;height:100%;position:relative;">
+            <div class="wistia_embed wistia_async_${hash}" style="height:100%;width:100%;position:absolute;left:0;top:0;"></div>
+          </div>
+        `;
+        // ensure script and try autoplay
+        await ensureWistiaScript();
+        try {
+          if (window._wq) {
+            window._wq.push({ id: hash, onReady: function(player) {
+              try { player.play(); } catch (e) {}
+            }});
+          }
+        } catch (e) { console.warn(e); }
+        // Wistia uses its own controls — hide our HTML controls
+        playerControls.style.display = 'none';
+      } else {
+        // MP4 / HTML5 flow
+        playerVideo.style.display = 'block';
+        playerControls.style.display = 'flex';
+        playerVideo.src = url;
+        playerVideo.currentTime = 0;
+        playerVideo.play().catch(()=>{});
+        updatePlayPauseLabel();
       }
-
-      others.slice(0, 8).forEach((m) => {
-        const card = document.createElement("div");
-        card.className = "more-like-card";
-        card.innerHTML = `<img src="${m.thumbnailUrl}" alt="${m.title}">`;
-        card.addEventListener("click", () => {
-          openPlayer(m);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-        moreLikeRow.appendChild(card);
-      });
-
-      moreLikeSection.style.display = "block";
     }
 
+    // ---------- Controls for HTML5 video ----------
     function updatePlayPauseLabel() {
-      if (playerVideo.paused) {
-        playPauseBtn.textContent = "▶ Play";
-      } else {
-        playPauseBtn.textContent = "❚❚ Pause";
-      }
+      if (playerVideo.paused) playPauseBtn.textContent = "▶ Play";
+      else playPauseBtn.textContent = "❚❚ Pause";
     }
-
-    // Controls events
-    playPauseBtn.addEventListener("click", () => {
-      if (playerVideo.paused) playerVideo.play();
-      else playerVideo.pause();
-    });
-
-    back10Btn.addEventListener("click", () => {
-      playerVideo.currentTime = Math.max(0, playerVideo.currentTime - 10);
-    });
-
-    forward10Btn.addEventListener("click", () => {
-      const dur = playerVideo.duration || 0;
-      playerVideo.currentTime = Math.min(dur, playerVideo.currentTime + 10);
-    });
-
-    fullscreenBtn.addEventListener("click", () => {
-      if (!document.fullscreenElement) {
-        if (playerContainer.requestFullscreen) playerContainer.requestFullscreen();
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-      }
-    });
+    playPauseBtn.addEventListener("click", () => { try { if (playerVideo.paused) playerVideo.play(); else playerVideo.pause(); } catch(e){} });
+    back10Btn.addEventListener("click", () => { try { playerVideo.currentTime = Math.max(0, playerVideo.currentTime - 10); } catch(e){} });
+    forward10Btn.addEventListener("click", () => { try { const dur = playerVideo.duration || 0; playerVideo.currentTime = Math.min(dur, playerVideo.currentTime + 10); } catch(e){} });
+    fullscreenBtn.addEventListener("click", () => { if (!document.fullscreenElement) playerContainer.requestFullscreen?.(); else document.exitFullscreen?.(); });
 
     playerVideo.addEventListener("play", updatePlayPauseLabel);
     playerVideo.addEventListener("pause", updatePlayPauseLabel);
-
-    playerVideo.addEventListener("loadedmetadata", () => {
-      const dur = playerVideo.duration || 0;
-      timeTotal.textContent = formatTime(dur);
-    });
-
+    playerVideo.addEventListener("loadedmetadata", () => { const dur = playerVideo.duration || 0; timeTotal.textContent = formatTime(dur); });
     playerVideo.addEventListener("timeupdate", () => {
       if (isUserScrubbing) return;
       const cur = playerVideo.currentTime || 0;
       const dur = playerVideo.duration || 0;
       timeCurrent.textContent = formatTime(cur);
-      if (dur > 0) {
-        progressBar.value = ((cur / dur) * 100).toFixed(1);
-      } else {
-        progressBar.value = 0;
-      }
+      progressBar.value = dur ? ((cur / dur) * 100).toFixed(1) : 0;
     });
-
     progressBar.addEventListener("input", (e) => {
       isUserScrubbing = true;
       const val = parseFloat(e.target.value || "0");
@@ -705,10 +456,38 @@
         timeCurrent.textContent = formatTime(playerVideo.currentTime);
       }
     });
+    progressBar.addEventListener("change", () => { isUserScrubbing = false; });
 
-    progressBar.addEventListener("change", () => {
-      isUserScrubbing = false;
+    // ---------- More-like ----------
+    function buildMoreLike(movie) {
+      const others = shuffleArray(allMovies.filter((m) => m.id !== movie.id));
+      moreLikeRow.innerHTML = "";
+      if (others.length === 0) { moreLikeSection.style.display = "none"; return; }
+      others.slice(0, 8).forEach((m) => {
+        const card = document.createElement("div");
+        card.className = "more-like-card";
+        card.innerHTML = `<img src="${m.thumbnailUrl || ''}" alt="${m.title || ''}">`;
+        card.addEventListener("click", () => { openPlayer(m); window.scrollTo({ top: 0, behavior: "smooth" }); });
+        moreLikeRow.appendChild(card);
+      });
+      moreLikeSection.style.display = "block";
+    }
+
+    // ---------- Search ----------
+    searchBtn.addEventListener("click", () => {
+      const q = (searchBox.value || "").trim().toLowerCase();
+      if (!q) { renderMoviesGrid(); return; }
+      const filtered = allMovies.filter(m => (m.title || '').toLowerCase().includes(q) || (m.category || '').toLowerCase().includes(q));
+      moviesGrid.innerHTML = "";
+      filtered.forEach(m => {
+        const card = document.createElement("div");
+        card.className = "movie-card";
+        card.innerHTML = `<img src="${m.thumbnailUrl || ''}"><div class="movie-info"><div class="movie-title">${m.title || ''}</div><div class="movie-category-pill">${m.category || ''}</div></div>`;
+        card.addEventListener("click", () => { openPlayer(m); window.scrollTo({ top: 0, behavior: "smooth" }); });
+        moviesGrid.appendChild(card);
+      });
     });
+    clearSearchBtn.addEventListener("click", () => { searchBox.value=''; renderMoviesGrid(); });
 
     // ---------- INIT ----------
     (async () => {
@@ -716,6 +495,7 @@
       startSessionWatcher();
       await loadMovies();
     })();
+
   </script>
 </body>
 </html>
