@@ -83,6 +83,10 @@
       border:1px solid #262626;
       font-size: 12px;
     }
+    .hint { font-size:12px; color:#9ca3af; margin-top:6px; }
+    /* inline rank input style */
+    .rank-input { width:80px; padding:6px; border-radius:6px; border:1px solid #222; background:#0b0b0b; color:#fff; }
+    .small-btn { padding:6px 8px; font-size:13px; border-radius:6px; }
   </style>
 </head>
 <body>
@@ -101,7 +105,7 @@
       <thead>
         <tr>
           <th>Code</th>
-          <th>Expires At</hth>
+          <th>Expires At</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -148,7 +152,8 @@
       <input type="text" id="title" placeholder="Movie title" required /><br />
       <textarea id="description" placeholder="Description"></textarea><br />
       <input type="text" id="thumbUrl" placeholder="Thumbnail URL (ImageKit)" required /><br />
-      <input type="text" id="videoUrl" placeholder="Video URL (ImageKit)" required /><br />
+      <input type="text" id="videoUrl" placeholder="Video URL (ImageKit or Wistia link/embed/hash)" required /><br />
+      <div class="hint">Tip: paste Wistia url like <code>https://home.wistia.com/medias/ab12cd34ef</code> or embed code — form will normalize it.</div>
 
       <label>Category:</label>
       <select id="categorySelect">
@@ -191,7 +196,8 @@
       orderBy,
       deleteDoc,
       doc,
-      updateDoc
+      updateDoc,
+      deleteField
     } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
     // --- FIREBASE CONFIG ---
@@ -468,6 +474,34 @@
       setMovieFormMode("create");
     };
 
+    // -------- Wistia helpers (new) --------
+    // Extract Wistia hash from typical inputs (embed code, medias URL, or plain hash)
+    function extractWistiaHash(input) {
+      if (!input) return null;
+      input = String(input).trim();
+      // look for wistia_async_HASH
+      let m = input.match(/wistia_async_([A-Za-z0-9_-]{6,})/);
+      if (m && m[1]) return m[1];
+      // look for medias/HASH
+      m = input.match(/medias\/([A-Za-z0-9_-]{6,})/);
+      if (m && m[1]) return m[1];
+      // look for query param or plain token often 6-12 chars
+      m = input.match(/([A-Za-z0-9_-]{6,})/);
+      if (m && m[1]) return m[1];
+      return null;
+    }
+
+    // Normalize to canonical Wistia URL if possible, otherwise return original trimmed input
+    function normalizeVideoUrl(original) {
+      if (!original) return original;
+      const s = String(original).trim();
+      const hash = extractWistiaHash(s);
+      if (hash) {
+        return `https://home.wistia.com/medias/${hash}`;
+      }
+      return s; // not a wistia link => keep as-is
+    }
+
     movieForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       logEl.textContent = "";
@@ -475,12 +509,21 @@
       const title = titleInput.value.trim();
       const description = descInput.value.trim();
       const thumbUrl = thumbInput.value.trim();
-      const videoUrl = videoInput.value.trim();
+      let videoUrl = videoInput.value.trim();
       const category = (categorySelect.value || "").trim();
 
       if (!title || !thumbUrl || !videoUrl) {
         alert("Title, thumbnail URL and video URL required");
         return;
+      }
+
+      // Normalize videoUrl (Wistia detection + canonicalization)
+      const normalized = normalizeVideoUrl(videoUrl);
+      if (normalized !== videoUrl) {
+        log(`Normalized video URL to canonical Wistia link: ${normalized}`);
+        videoUrl = normalized;
+      } else {
+        log(`Saving video URL as provided.`);
       }
 
       try {
@@ -544,7 +587,8 @@
           thumbnailUrl: data.thumbnailUrl || "",
           videoUrl: data.videoUrl || "",
           category: data.category || "Other",
-          createdAt: data.createdAt || null
+          createdAt: data.createdAt || null,
+          rank: typeof data.rank === 'number' ? data.rank : null
         };
         moviesCache.push(movie);
 
@@ -554,9 +598,17 @@
           <td>${movie.title}</td>
           <td>${movie.category}</td>
           <td>${formatDate(movie.createdAt)}</td>
-          <td>
-            <button class="secondary" data-action="edit">Edit</button>
-            <button class="danger" data-action="delete">Delete</button>
+          <td style="min-width:300px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="secondary" data-action="edit">Edit</button>
+              <button class="danger" data-action="delete">Delete</button>
+
+              <div style="display:flex;align-items:center;gap:6px;margin-left:8px;">
+                <input type="number" min="1" placeholder="rank" value="${movie.rank !== null ? movie.rank : ''}" class="rank-input" data-role="rankInput" />
+                <button class="small-btn secondary" data-role="saveRankBtn">Save Rank</button>
+                <button class="small-btn" data-role="clearRankBtn" style="background:#7c2d2d;color:#fff;">Clear</button>
+              </div>
+            </div>
           </td>
         `;
 
@@ -569,6 +621,44 @@
         };
 
         delBtn.onclick = () => deleteMovie(movie.id);
+
+        // Rank handlers
+        const saveRankBtn = tr.querySelector('[data-role="saveRankBtn"]');
+        const rankInput = tr.querySelector('[data-role="rankInput"]');
+        const clearRankBtn = tr.querySelector('[data-role="clearRankBtn"]');
+
+        saveRankBtn.onclick = async () => {
+          const val = rankInput.value.trim();
+          if (val === '') {
+            alert('Enter a positive integer rank or use Clear to remove rank.');
+            return;
+          }
+          const n = Number(val);
+          if (!Number.isInteger(n) || n <= 0) {
+            alert('Rank must be a positive integer.');
+            return;
+          }
+          try {
+            await updateDoc(doc(db, "movies", movie.id), { rank: n });
+            alert('Rank saved.');
+            await loadMovies();
+          } catch (err) {
+            console.error(err);
+            alert('Error saving rank: ' + err.message);
+          }
+        };
+
+        clearRankBtn.onclick = async () => {
+          if (!confirm('Remove rank for this movie?')) return;
+          try {
+            await updateDoc(doc(db, "movies", movie.id), { rank: deleteField() });
+            alert('Rank removed.');
+            await loadMovies();
+          } catch (err) {
+            console.error(err);
+            alert('Error removing rank: ' + err.message);
+          }
+        };
 
         moviesBody.appendChild(tr);
       });
