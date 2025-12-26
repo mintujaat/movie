@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>MintuFlix — Movies (Wistia + MP4)</title>
+  <title>VEXION</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/JjzC68cD/file-000000002e487206b08576e9a7ff0c42.png" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     * { box-sizing: border-box; margin:0; padding:0; }
@@ -12,67 +13,245 @@
       color:#fff;
       min-height:100vh;
     }
-    .navbar { display:flex; align-items:center; justify-content:space-between; padding:12px 4vw; background:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0)); position:sticky; top:0; z-index:5; }
+    .navbar { display:flex; align-items:center; justify-content:space-between; padding:12px 4vw; background:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0)); position:sticky; top:0; z-index:30; }
     .logo { font-size:24px; font-weight:800; letter-spacing:1px; color:#e50914; }
     .logo span { color:#fff; font-weight:500; font-size:18px; }
     .session-status { font-size:12px; opacity:0.8; text-align:right; }
     .session-status span { color:#22c55e; }
-    .hero-shadow { position:fixed; inset:0; background:radial-gradient(circle at top, rgba(229,9,20,0.35), transparent 55%); opacity:0.4; pointer-events:none; z-index:-1; }
-    main { padding:12px 4vw 32px; }
-    .section-title { font-size:18px; font-weight:600; margin-bottom:10px; }
+
+    .hero-shadow { position:fixed; inset:0; background:radial-gradient(circle at top, rgba(229,9,20,0.35), transparent 55%); opacity:0.28; pointer-events:none; z-index:-1; }
+    main { padding:18px 4vw 48px; max-width:1400px; margin:0 auto; }
+
+    .section-title { font-size:22px; font-weight:700; margin:0 0 14px 0; }
+
+    /* TRENDING */
+    section#trendingSection { margin-bottom:28px; }
+    #trendingRow { display:flex; gap:18px; overflow-x:auto; padding-bottom:8px; align-items:center; }
+    #trendingRow::-webkit-scrollbar { height:10px; }
+    #trendingRow::-webkit-scrollbar-thumb { background:#222; border-radius:6px; }
+    .trend-card{
+      min-width:220px;
+      width:220px;
+      height:330px;
+      border-radius:10px;
+      overflow:hidden;
+      position:relative;
+      flex:0 0 auto;
+      box-shadow:0 12px 30px rgba(0,0,0,0.6);
+      cursor:pointer;
+      background:#111;
+      display:inline-block;
+    }
+    .trend-card img{ width:100%; height:100%; object-fit:cover; display:block; filter:contrast(1.03); }
+    .trend-overlay { position:absolute; inset:0; background: linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.05)); }
+    .trend-num {
+      position:absolute;
+      left:16px;
+      bottom:16px;
+      font-size:120px;
+      font-weight:900;
+      color:transparent;
+      -webkit-text-stroke:2px rgba(0,0,0,0.85);
+      text-stroke:2px rgba(0,0,0,0.85);
+      pointer-events:none;
+      transform:translateY(6px);
+      text-shadow: 0 4px 18px rgba(0,0,0,0.6);
+      z-index:2;
+    }
+    .trend-num::after {
+      content: attr(data-num);
+      position:absolute;
+      left:0; top:0;
+      color:rgba(255,255,255,0.95);
+      transform:translateY(-2px);
+      pointer-events:none;
+    }
+    .trend-badge {
+      position:absolute;
+      left:12px;
+      bottom:12px;
+      background:#e11d2d;
+      color:#fff;
+      padding:6px 10px;
+      border-radius:6px;
+      font-size:12px;
+      font-weight:700;
+      z-index:3;
+      text-transform:capitalize;
+      box-shadow:0 8px 18px rgba(0,0,0,0.5);
+    }
 
     /* Player */
-    .player-section { max-width:1000px; margin:0 auto 24px auto; }
-    .player-container { background:#000; position:relative; width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden; box-shadow:0 16px 40px rgba(0,0,0,0.85); }
+    .player-section { max-width:1200px; margin:0 auto 24px auto; }
+    .player-container { background:#000; position:relative; width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden; box-shadow:0 16px 40px rgba(0,0,0,0.85); margin-bottom:12px; z-index:40; }
     #playerVideo, #wistiaPlayerBox { width:100%; height:100%; display:block; background:#000; border:0; }
-    .player-controls { position:absolute; left:0; right:0; bottom:0; padding:8px 10px; background:linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.35), transparent); display:flex; flex-direction:column; gap:4px; }
+    .player-controls { position:absolute; left:0; right:0; bottom:0; padding:8px 10px; background:linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.35), transparent); display:flex; flex-direction:column; gap:6px; }
     .controls-row-top { display:flex; align-items:center; gap:8px; }
     .controls-row-bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:11px; }
-    .ctrl-btn { border:none; background:rgba(15,23,42,0.9); color:#e5e7eb; border-radius:999px; padding:4px 8px; font-size:11px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; }
-    .ctrl-btn.primary { background:#e50914; color:#fff; font-weight:600; }
-    .ctrl-btn.small { padding:3px 6px; font-size:11px; }
-    .progress-wrap { display:flex; align-items:center; gap:6px; width:100%; }
-    .progress-bar { -webkit-appearance:none; appearance:none; width:100%; height:4px; border-radius:999px; background:rgba(55,65,81,0.9); outline:none; cursor:pointer; }
-    .progress-bar::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:10px; height:10px; border-radius:50%; background:#e50914; cursor:pointer; margin-top:-3px; }
-    .time-text { white-space:nowrap; }
-    .player-meta-block { margin-top:10px; }
-    .player-title { font-size:20px; font-weight:700; margin-bottom:2px; }
-    .player-category { font-size:12px; color:#a5b4fc; margin-bottom:2px; }
-    .player-meta { font-size:11px; opacity:0.75; margin-bottom:8px; }
+    .ctrl-btn { border:none; background:rgba(15,23,42,0.9); color:#e5e7eb; border-radius:999px; padding:6px 12px; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+    .ctrl-btn.primary { background:#e50914; color:#fff; font-weight:700; }
+    .progress-wrap { display:flex; align-items:center; gap:8px; width:100%; }
+    .progress-bar { -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:999px; background:rgba(55,65,81,0.9); outline:none; cursor:pointer; }
+    .progress-bar::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:12px; height:12px; border-radius:50%; background:#e50914; cursor:pointer; margin-top:-3px; }
+    .time-text { white-space:nowrap; font-size:12px; }
+
+    .player-meta-block { margin-top:8px; max-width:1200px; }
+    .player-title { font-size:20px; font-weight:700; margin-bottom:6px; }
+    .player-category { font-size:12px; color:#a5b4fc; margin-bottom:4px; }
     .player-description { font-size:13px; color:#d1d5db; line-height:1.45; margin-bottom:12px; }
-    .more-like-row { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:8px; margin-top:8px; }
-    .more-like-card { position:relative; border-radius:4px; overflow:hidden; cursor:pointer; background:#1f2937; aspect-ratio:16/9; }
-    .more-like-card img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.2s ease, opacity 0.2s ease; }
 
-    /* Category & grid */
-    .category-bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; margin-top:4px; }
-    .chip { padding:4px 10px; border-radius:999px; font-size:12px; border:1px solid #4b5563; background:#111827; color:#e5e7eb; cursor:pointer; transition:background 0.15s ease, color 0.15s ease, transform 0.1s ease; }
-    .chip:hover { transform:translateY(-1px); background:#1f2937; }
-    .chip.active { background:#e50914; border-color:#e50914; color:#fff; }
-    .movies-row { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); grid-gap:10px; }
-    @media (min-width:768px){ .movies-row { grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); grid-gap:14px; } }
-    .movie-card { position:relative; border-radius:6px; overflow:hidden; cursor:pointer; background:#141414; transition:transform 0.2s ease, box-shadow 0.2s ease; aspect-ratio:16/9; }
-    .movie-card img { width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.01); transition:transform 0.25s ease, opacity 0.2s ease; }
-    .movie-card::after { content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.05)); opacity:0.9; transition:opacity 0.25s ease; }
-    .movie-info { position:absolute; left:8px; right:8px; bottom:6px; z-index:2; display:flex; flex-direction:column; gap:2px; }
-    .movie-title { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .movie-category-pill { font-size:10px; display:inline-block; padding:1px 6px; border-radius:999px; background:rgba(15,23,42,0.9); color:#e5e7eb; max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .movie-card:hover { transform:translateY(-3px) scale(1.03); box-shadow:0 12px 24px rgba(0,0,0,0.7); }
-    .movie-card:hover img { transform:scale(1.08); opacity:0.9; }
-    .empty-state { font-size:14px; color:#9ca3af; margin-top:20px; }
-    @media (max-width:600px){ .controls-row-bottom { flex-direction:column; align-items:flex-start; gap:4px; } }
+    /* search */
+    .search-row { display:flex; gap:8px; align-items:center; margin-bottom:18px; }
+    .search-row input { padding:10px; border-radius:8px; border:1px solid #222; background:#071028; color:#fff; min-width:0; flex:1; }
+    .search-row button { padding:10px 14px; border-radius:8px; border:none; background:#e50914; color:#fff; cursor:pointer; font-weight:700; }
 
-    /* search row */
-    .search-row { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
-    .search-row input { padding:8px; border-radius:8px; border:1px solid #222; background:#071028; color:#fff; min-width:0; flex:1; }
-    .search-row button { padding:8px 12px; border-radius:8px; border:none; background:#e50914; color:#fff; cursor:pointer; }
+    /* CATEGORY ROWS (like Netflix rows) */
+    .cat-section { margin:24px 0; }
+    .cat-title-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .cat-title { font-size:18px; font-weight:700; }
+    .cat-row { display:flex; gap:12px; overflow-x:auto; padding-bottom:8px; }
+    .cat-row::-webkit-scrollbar { height:10px; }
+    .cat-card {
+      min-width:260px;
+      width:260px;
+      height:150px;
+      border-radius:8px;
+      overflow:hidden;
+      position:relative;
+      flex:0 0 auto;
+      background:#111;
+      box-shadow:0 8px 20px rgba(0,0,0,0.6);
+      cursor:pointer;
+    }
+    .cat-card img { width:100%; height:100%; object-fit:cover; display:block; filter:contrast(1.02); }
+    .cat-card .cat-badge {
+      position:absolute; left:12px; bottom:10px; background:#e11d2d; color:#fff; padding:5px 8px; border-radius:6px; font-size:12px; font-weight:700; z-index:2;
+    }
+    .cat-card .cat-num { position:absolute; right:10px; top:8px; background:rgba(0,0,0,0.45); padding:4px 8px; border-radius:6px; font-weight:700; font-size:13px; }
 
+    /* more-like / suggestion row */
+    .more-like-row { display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap:8px; margin-top:8px; }
+    .more-like-card {
+      width:100%;
+      max-width:140px;
+      height:84px;
+      border-radius:6px;
+      overflow:hidden;
+      position:relative;
+      background:#111;
+      box-shadow:0 8px 18px rgba(0,0,0,0.6);
+      cursor:pointer;
+    }
+    .more-like-card img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    /* responsive */
+    @media (max-width: 900px) {
+      .trend-card { min-width:180px; width:180px; height:270px; }
+      .trend-num { font-size:84px; left:12px; bottom:12px; }
+      .cat-card { min-width:180px; width:180px; height:120px; }
+      .player-container { max-height:44vh; border-radius:8px; }
+      .trend-card { min-width:160px; width:160px; height:240px; }
+    }
+    @media (max-width:600px) {
+      .trend-card { min-width:130px; width:130px; height:200px; }
+      .trend-num { font-size:46px; left:8px; bottom:8px; }
+      .cat-card { min-width:140px; width:140px; height:92px; }
+      main { padding:14px; }
+      .player-container { max-height:38vh; }
+      .more-like-card { max-width:110px; height:72px; border-radius:6px; }
+    }
+
+    ::-webkit-scrollbar { height:10px; width:10px; }
+    ::-webkit-scrollbar-thumb { background:#222; border-radius:6px; }
   </style>
 </head>
 <body>
+  <!-- VEXION INTRO ANIMATION (EMBEDDED) -->
+<div id="vexionIntro" style="
+  position:fixed; inset:0; 
+  background:rgba(0,0,0,0.65); 
+  backdrop-filter:blur(4px);
+  display:flex; align-items:center; justify-content:center;
+  z-index:999999; transition:opacity .7s ease, visibility .7s ease;
+">
+  <div style="
+    text-align:center; padding:28px 32px;
+    border-radius:12px; border:1px solid rgba(255,255,255,0.08);
+    background:rgba(0,0,0,0.35);
+    box-shadow:0 25px 80px rgba(0,0,0,0.9);
+    max-width:520px; width:calc(100% - 50px);
+  ">
+      <div style="font-size:64px;font-weight:900;letter-spacing:6px;color:#ff1a1a;margin-bottom:8px;text-shadow:0 8px 25px rgba(255,0,0,0.55);">
+        <span class="vx">V</span><span class="vx">E</span><span class="vx">X</span><span class="vx">I</span><span class="vx">O</span><span class="vx">N</span>
+      </div>
+
+      <div id="vxSub" style="font-size:15px;color:white;opacity:0;margin-top:4px;">
+        Redefined Streaming Experience
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;">
+        <div class="vxDot"></div>
+        <div class="vxDot"></div>
+        <div class="vxDot"></div>
+      </div>
+  </div>
+</div>
+
+<style>
+  .vx{
+    display:inline-block;
+    opacity:0;
+    transform:translateY(26px);
+    animation:vxPop .55s forwards cubic-bezier(.2,.9,.3,1);
+  }
+  .vx:nth-child(1){ animation-delay:.05s }
+  .vx:nth-child(2){ animation-delay:.10s }
+  .vx:nth-child(3){ animation-delay:.15s }
+  .vx:nth-child(4){ animation-delay:.20s }
+  .vx:nth-child(5){ animation-delay:.25s }
+  .vx:nth-child(6){ animation-delay:.30s }
+
+  @keyframes vxPop{
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  #vxSub{
+    transform:translateY(10px);
+    animation:vxSubAnim .6s .55s forwards ease;
+  }
+  @keyframes vxSubAnim{
+    to{ opacity:1; transform:none; }
+  }
+
+  .vxDot{
+    width:12px;height:12px;border-radius:50%;
+    background:rgba(255,255,255,0.15);
+    animation:vxBounce .9s infinite ease-in-out;
+  }
+  .vxDot:nth-child(2){ animation-delay:.12s }
+  .vxDot:nth-child(3){ animation-delay:.24s }
+
+  @keyframes vxBounce{
+    0%{ transform:translateY(0); opacity:.6 }
+    50%{ transform:translateY(-10px); opacity:1 }
+    100%{ transform:translateY(0); opacity:.6 }
+  }
+</style>
+
+<script>
+  // remove intro after animation
+  setTimeout(()=>{
+    const v = document.getElementById("vexionIntro");
+    v.style.opacity="0";
+    v.style.visibility="hidden";
+    setTimeout(()=> v.remove(),700);
+  }, 2600);
+</script>
+<!-- END INTRO -->
+
   <div class="hero-shadow"></div>
   <header class="navbar">
-    <div class="logo">MINTU<span>FLIX</span></div>
+    <div class="logo">VEX<span>ION</span></div>
     <div class="session-status">Access: <span id="sessionStatusText">Checking…</span></div>
   </header>
 
@@ -80,18 +259,13 @@
     <!-- PLAYER -->
     <section id="playerSection" class="player-section" style="display:none;">
       <div id="playerContainer" class="player-container">
-        <!-- HTML5 video (for direct MP4 links) -->
         <video id="playerVideo" playsinline webkit-playsinline></video>
-
-        <!-- Wistia container (hidden until needed) -->
         <div id="wistiaPlayerBox" style="width:100%;height:100%;display:none;"></div>
-
-        <!-- Controls (work for HTML5 video only) -->
         <div class="player-controls" id="playerControls">
           <div class="controls-row-top">
             <button id="playPauseBtn" class="ctrl-btn primary">▶ Play</button>
-            <button id="back10Btn" class="ctrl-btn small">« 10s</button>
-            <button id="forward10Btn" class="ctrl-btn small">10s »</button>
+            <button id="back10Btn" class="ctrl-btn">« 10s</button>
+            <button id="forward10Btn" class="ctrl-btn">10s »</button>
           </div>
           <div class="controls-row-bottom">
             <div class="progress-wrap">
@@ -99,7 +273,7 @@
               <input id="progressBar" class="progress-bar" type="range" min="0" max="100" value="0" />
               <span id="timeTotal" class="time-text">0:00</span>
             </div>
-            <button id="fullscreenBtn" class="ctrl-btn small"><span class="fs-label">Fullscreen</span></button>
+            <button id="fullscreenBtn" class="ctrl-btn">Fullscreen</button>
           </div>
         </div>
       </div>
@@ -111,23 +285,29 @@
         <div id="playerDescription" class="player-description"></div>
 
         <div id="moreLikeSection" style="display:none;">
-          <div class="more-like-title">More like this</div>
+          <div class="section-title">More like this</div>
           <div id="moreLikeRow" class="more-like-row"></div>
         </div>
       </div>
     </section>
 
-    <!-- Search + categories -->
+    <!-- Search -->
     <div class="search-row">
-      <input id="searchBox" placeholder="Search movies by title..." />
+      <input id="searchBox" placeholder="Search movies by title or category..." />
       <button id="searchBtn">Search</button>
       <button id="clearSearchBtn" style="background:#4b5563;margin-left:6px;">Clear</button>
     </div>
+        <!-- TRENDING -->
+    <section id="trendingSection">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <h2 class="section-title">Trending Now</h2>
+        <div style="font-size:13px;color:#9ca3af">Top picks — managed from admin</div>
+      </div>
+      <div id="trendingRow" aria-live="polite"></div>
+    </section>
 
-    <h2 class="section-title">Movies</h2>
-    <div id="categoryBar" class="category-bar"></div>
-    <div id="moviesGrid" class="movies-row"></div>
-    <div id="emptyState" class="empty-state" style="display:none;">No movies available yet.</div>
+    <!-- Dynamic category sections will be rendered here -->
+    <div id="categoriesContainer"></div>
   </main>
 
   <script type="module">
@@ -152,15 +332,14 @@
       measurementId: "G-HV143L1C2X"
     };
 
-    // Init
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // DOM
-    const moviesGrid = document.getElementById("moviesGrid");
-    const emptyState = document.getElementById("emptyState");
-    const sessionStatusText = document.getElementById("sessionStatusText");
-    const categoryBar = document.getElementById("categoryBar");
+    // DOM refs
+    const trendingSection = document.getElementById('trendingSection');
+    const trendingRow = document.getElementById('trendingRow');
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    const sessionStatusText = document.getElementById('sessionStatusText');
 
     const playerSection = document.getElementById("playerSection");
     const playerContainer = document.getElementById("playerContainer");
@@ -174,7 +353,6 @@
     const timeCurrent = document.getElementById("timeCurrent");
     const timeTotal = document.getElementById("timeTotal");
     const fullscreenBtn = document.getElementById("fullscreenBtn");
-
     const playerTitle = document.getElementById("playerTitle");
     const playerCategory = document.getElementById("playerCategory");
     const playerDescription = document.getElementById("playerDescription");
@@ -187,12 +365,13 @@
     const clearSearchBtn = document.getElementById("clearSearchBtn");
 
     let allMovies = [];
-    let activeCategory = "All";
     let isUserScrubbing = false;
     let currentMovie = null;
     let wistiaScriptLoaded = false;
+    let isVideoPlaying = false;
+    let searchActive = false;
 
-    // ---------- Session (unchanged) ----------
+    // ---------- Session helpers ----------
     function getSession() {
       const raw = localStorage.getItem("movieAppSession");
       if (!raw) return null;
@@ -207,7 +386,7 @@
       const session = getSession();
       if (!session) {
         sessionStatusText.textContent = "Not logged in";
-        window.location.href = "enter-code.html";
+        window.location.href = "index.html";
         return false;
       }
       const now = Date.now();
@@ -225,7 +404,7 @@
       setInterval(() => { ensureActiveSession(false); }, 30000);
     }
 
-    // ---------- Helpers ----------
+    // ---------- Utils ----------
     function formatDate(ts) {
       if (!ts) return "";
       try {
@@ -243,82 +422,6 @@
       return `${m}:${two(s)}`;
     }
     function shuffleArray(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-
-    // ---------- Categories ----------
-    function buildCategoryBar() {
-      const categories = new Set();
-      allMovies.forEach((m) => { const c = (m.category || "Other").trim(); if (c) categories.add(c); });
-      const cats = ["All", ...Array.from(categories).sort()];
-      categoryBar.innerHTML = "";
-      cats.forEach((c) => {
-        const chip = document.createElement("button");
-        chip.textContent = c;
-        chip.className = "chip" + (c === activeCategory ? " active" : "");
-        chip.addEventListener("click", () => { activeCategory = c; buildCategoryBar(); renderMoviesGrid(); });
-        categoryBar.appendChild(chip);
-      });
-    }
-
-    // ---------- Load movies ----------
-    async function loadMovies() {
-      const ok = ensureActiveSession(true);
-      if (!ok) return;
-      try {
-        const qMovies = query(collection(db, "movies"), orderBy("createdAt", "desc"));
-        const snap = await getDocs(qMovies);
-        allMovies = [];
-        snap.forEach((docSnap) => {
-          const data = docSnap.data();
-          allMovies.push({
-            id: docSnap.id,
-            title: data.title || "",
-            description: data.description || "",
-            thumbnailUrl: data.thumbnailUrl || "",
-            videoUrl: data.videoUrl || "",
-            category: data.category || "Other",
-            createdAt: data.createdAt || null
-          });
-        });
-        if (allMovies.length === 0) {
-          emptyState.style.display = "block";
-          playerSection.style.display = "none";
-        } else {
-          emptyState.style.display = "none";
-        }
-        buildCategoryBar();
-        renderMoviesGrid();
-      } catch (e) {
-        console.error(e);
-        emptyState.style.display = "block";
-        emptyState.textContent = "Failed to load movies.";
-      }
-    }
-
-    function renderMoviesGrid() {
-      moviesGrid.innerHTML = "";
-      const filtered = activeCategory === "All" ? allMovies : allMovies.filter((m) => (m.category || "Other") === activeCategory);
-      filtered.forEach((movie) => {
-        const card = document.createElement("div");
-        card.className = "movie-card";
-        const cat = movie.category || "Other";
-        card.innerHTML = `
-          <img src="${movie.thumbnailUrl || ''}" alt="${movie.title || ''}">
-          <div class="movie-info">
-            <div class="movie-title">${movie.title || ''}</div>
-            <div class="movie-category-pill">${cat}</div>
-          </div>
-        `;
-        card.addEventListener("click", () => { openPlayer(movie); window.scrollTo({ top: 0, behavior: "smooth" }); });
-        moviesGrid.appendChild(card);
-      });
-      if (filtered.length === 0 && allMovies.length > 0) {
-        emptyState.style.display = "block";
-        emptyState.textContent = "No movies in this category.";
-      } else if (allMovies.length > 0) {
-        emptyState.style.display = "none";
-        emptyState.textContent = "No movies available yet.";
-      }
-    }
 
     // ---------- Wistia helpers ----------
     function extractWistiaHash(input) {
@@ -349,7 +452,20 @@
       });
     }
 
-    // ---------- Player logic (MP4 vs Wistia) ----------
+    // ---------- helpers to toggle UI visibility ----------
+    function updateTrendingVisibility() {
+      // show trending only when not playing and not searching
+      if (!isVideoPlaying && !searchActive) {
+        trendingSection.style.display = '';
+      } else {
+        trendingSection.style.display = 'none';
+      }
+    }
+    function setMoreLikeVisibility(show) {
+      moreLikeSection.style.display = show ? '' : 'none';
+    }
+
+    // ---------- Player logic ----------
     function stopHtmlVideo() {
       try {
         playerVideo.pause();
@@ -357,106 +473,111 @@
         playerVideo.load();
       } catch (e) {}
     }
-
     function removeWistiaEmbed() {
       try {
-        // remove DOM inside wistiaPlayerBox
         wistiaPlayerBox.innerHTML = '';
         wistiaPlayerBox.style.display = 'none';
       } catch (e) {}
     }
-
     async function openPlayer(movie) {
       ensureActiveSession();
       currentMovie = movie;
       const url = (movie.videoUrl || "").trim();
-
-      // determine type
       const useWistia = isProbablyWistia(url) && !url.toLowerCase().endsWith('.mp4');
 
-      // reset both
       removeWistiaEmbed();
       stopHtmlVideo();
       playerVideo.style.display = 'none';
       playerControls.style.display = 'none';
 
-      // update meta
       playerTitle.textContent = movie.title || "";
       playerDescription.textContent = movie.description || "";
       playerCategory.textContent = movie.category ? "Category: " + movie.category : "";
       playerMeta.textContent = movie.createdAt ? "Added: " + formatDate(movie.createdAt) : "";
 
-      // build more-like
-      buildMoreLike(movie);
+      // hide suggestions initially when opening player (we'll show if paused/ended)
+      setMoreLikeVisibility(false);
+
+      // Hide trending (video playing view should not show trending)
+      isVideoPlaying = true;
+      updateTrendingVisibility();
+
+      buildMoreLike(movie); // populate more-like data (but kept hidden while playing)
       playerSection.style.display = "block";
 
       if (useWistia) {
-        // Wistia flow
         const hash = extractWistiaHash(url);
-        if (!hash) {
-          alert("Wistia link invalid.");
-          return;
-        }
-        // show wistia box
+        if (!hash) { alert("Wistia link invalid."); return; }
         wistiaPlayerBox.style.display = 'block';
-        // inject embed div (Wistia auto-init when script present)
         wistiaPlayerBox.innerHTML = `
           <div class="wistia_responsive_wrapper" style="width:100%;height:100%;position:relative;">
             <div class="wistia_embed wistia_async_${hash}" style="height:100%;width:100%;position:absolute;left:0;top:0;"></div>
           </div>
         `;
-        // ensure script and try autoplay
         await ensureWistiaScript();
         try {
           if (window._wq) {
             window._wq.push({ id: hash, onReady: function(player) {
               try { player.play(); } catch (e) {}
+              // Wistia custom events: show suggestions on pause/ended if desired
+              try {
+                player.bind('play', () => { isVideoPlaying = true; updateTrendingVisibility(); setMoreLikeVisibility(false); });
+                player.bind('pause', () => { isVideoPlaying = false; updateTrendingVisibility(); setMoreLikeVisibility(true); });
+                player.bind('end', () => { isVideoPlaying = false; updateTrendingVisibility(); setMoreLikeVisibility(true); });
+              } catch(e){}
             }});
           }
         } catch (e) { console.warn(e); }
-        // Wistia uses its own controls — hide our HTML controls
         playerControls.style.display = 'none';
       } else {
-        // MP4 / HTML5 flow
         playerVideo.style.display = 'block';
         playerControls.style.display = 'flex';
         playerVideo.src = url;
         playerVideo.currentTime = 0;
+        // Attempt to autoplay; update playing state after 'play' event
         playerVideo.play().catch(()=>{});
-        updatePlayPauseLabel();
       }
     }
 
-    // ---------- Controls for HTML5 video ----------
-    function updatePlayPauseLabel() {
-      if (playerVideo.paused) playPauseBtn.textContent = "▶ Play";
-      else playPauseBtn.textContent = "❚❚ Pause";
-    }
-    playPauseBtn.addEventListener("click", () => { try { if (playerVideo.paused) playerVideo.play(); else playerVideo.pause(); } catch(e){} });
-    back10Btn.addEventListener("click", () => { try { playerVideo.currentTime = Math.max(0, playerVideo.currentTime - 10); } catch(e){} });
-    forward10Btn.addEventListener("click", () => { try { const dur = playerVideo.duration || 0; playerVideo.currentTime = Math.min(dur, playerVideo.currentTime + 10); } catch(e){} });
-    fullscreenBtn.addEventListener("click", () => { if (!document.fullscreenElement) playerContainer.requestFullscreen?.(); else document.exitFullscreen?.(); });
+    // Controls for HTML5
+    function updatePlayPauseLabel(){ if (playerVideo.paused) playPauseBtn.textContent = "▶ Play"; else playPauseBtn.textContent = "❚❚ Pause"; }
+    playPauseBtn.addEventListener("click", () => { try{ if (playerVideo.paused) playerVideo.play(); else playerVideo.pause(); }catch(e){}});
+    back10Btn.addEventListener("click", ()=>{ try{ playerVideo.currentTime = Math.max(0, playerVideo.currentTime - 10); }catch(e){} });
+    forward10Btn.addEventListener("click", ()=>{ try{ const dur = playerVideo.duration || 0; playerVideo.currentTime = Math.min(dur, playerVideo.currentTime + 10); }catch(e){} });
+    fullscreenBtn.addEventListener("click", ()=>{ if (!document.fullscreenElement) playerContainer.requestFullscreen?.(); else document.exitFullscreen?.(); });
 
-    playerVideo.addEventListener("play", updatePlayPauseLabel);
-    playerVideo.addEventListener("pause", updatePlayPauseLabel);
-    playerVideo.addEventListener("loadedmetadata", () => { const dur = playerVideo.duration || 0; timeTotal.textContent = formatTime(dur); });
-    playerVideo.addEventListener("timeupdate", () => {
+    playerVideo.addEventListener("play", () => {
+      isVideoPlaying = true;
+      updatePlayPauseLabel();
+      updateTrendingVisibility();
+      setMoreLikeVisibility(false); // hide suggestions while playing
+    });
+    playerVideo.addEventListener("pause", () => {
+      isVideoPlaying = false;
+      updatePlayPauseLabel();
+      updateTrendingVisibility();
+      setMoreLikeVisibility(true); // show suggestions on pause
+    });
+    playerVideo.addEventListener("ended", () => {
+      isVideoPlaying = false;
+      updateTrendingVisibility();
+      setMoreLikeVisibility(true); // show suggestions after ended
+    });
+    playerVideo.addEventListener("loadedmetadata", ()=>{ const dur = playerVideo.duration || 0; timeTotal.textContent = formatTime(dur); });
+    playerVideo.addEventListener("timeupdate", ()=> {
       if (isUserScrubbing) return;
       const cur = playerVideo.currentTime || 0;
       const dur = playerVideo.duration || 0;
       timeCurrent.textContent = formatTime(cur);
       progressBar.value = dur ? ((cur / dur) * 100).toFixed(1) : 0;
     });
-    progressBar.addEventListener("input", (e) => {
+    progressBar.addEventListener("input", (e)=> {
       isUserScrubbing = true;
       const val = parseFloat(e.target.value || "0");
       const dur = playerVideo.duration || 0;
-      if (dur > 0) {
-        playerVideo.currentTime = (val / 100) * dur;
-        timeCurrent.textContent = formatTime(playerVideo.currentTime);
-      }
+      if (dur > 0) { playerVideo.currentTime = (val / 100) * dur; timeCurrent.textContent = formatTime(playerVideo.currentTime); }
     });
-    progressBar.addEventListener("change", () => { isUserScrubbing = false; });
+    progressBar.addEventListener("change", ()=>{ isUserScrubbing = false; });
 
     // ---------- More-like ----------
     function buildMoreLike(movie) {
@@ -466,36 +587,174 @@
       others.slice(0, 8).forEach((m) => {
         const card = document.createElement("div");
         card.className = "more-like-card";
-        card.innerHTML = `<img src="${m.thumbnailUrl || ''}" alt="${m.title || ''}">`;
+        card.style.borderRadius = "6px";
+        card.innerHTML = `<img src="${m.thumbnailUrl || ''}" alt="${(m.title||'')}">`;
         card.addEventListener("click", () => { openPlayer(m); window.scrollTo({ top: 0, behavior: "smooth" }); });
         moreLikeRow.appendChild(card);
       });
-      moreLikeSection.style.display = "block";
+      // note: we populate but we do NOT show here — visibility controlled by setMoreLikeVisibility()
     }
 
-    // ---------- Search ----------
+    // ---------- Load Trending ----------
+    async function loadTrending(limit = 8) {
+      try {
+        trendingRow.innerHTML = '<div style="color:#9ca3af;padding:8px 12px;">Loading…</div>';
+        const q = query(collection(db, "movies"), orderBy("rank"));
+        const snap = await getDocs(q);
+        const items = [];
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          if (d) items.push({ id: docSnap.id, ...d });
+        });
+        items.sort((a,b)=> (a.rank||9999) - (b.rank||9999));
+        const top = items.slice(0, limit);
+        trendingRow.innerHTML = '';
+        if (top.length === 0) {
+          trendingRow.innerHTML = '<div style="color:#9ca3af;padding:8px 12px;">No trending items set.</div>';
+          return;
+        }
+        top.forEach((m, idx) => {
+          const num = m.rank || (idx+1);
+          const card = document.createElement('div');
+          card.className = 'trend-card';
+          card.innerHTML = `
+            <img src="${m.thumbnailUrl || ''}" alt="${(m.title||'').replace(/"/g,'')}" loading="lazy" />
+            <div class="trend-overlay"></div>
+            <div class="trend-num" data-num="${num}">${num}</div>
+          `;
+          if (m.tag) {
+            const badge = document.createElement('div');
+            badge.className = 'trend-badge';
+            badge.textContent = m.tag;
+            card.appendChild(badge);
+          }
+          card.addEventListener('click', () => { try { openPlayer(m); window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e){ console.log(e); } });
+          trendingRow.appendChild(card);
+        });
+        trendingRow.style.scrollSnapType = 'x mandatory';
+        Array.from(trendingRow.children).forEach(ch => ch.style.scrollSnapAlign = 'center');
+        updateTrendingVisibility(); // initial visibility check
+      } catch (e) {
+        console.error('Trending load error', e);
+        trendingRow.innerHTML = '<div style="color:#9ca3af;padding:8px 12px;">Failed to load trending.</div>';
+      }
+    }
+
+    // ---------- Load movies & render category rows ----------
+    async function loadMoviesAndCategories() {
+      try {
+        const qMovies = query(collection(db, "movies"), orderBy("createdAt", "desc"));
+        const snap = await getDocs(qMovies);
+        allMovies = [];
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          allMovies.push({
+            id: docSnap.id,
+            title: d.title || "",
+            description: d.description || "",
+            thumbnailUrl: d.thumbnailUrl || "",
+            videoUrl: d.videoUrl || "",
+            category: d.category || "Other",
+            createdAt: d.createdAt || null,
+            rank: d.rank || null,
+            tag: d.tag || null
+          });
+        });
+
+        const map = new Map();
+        allMovies.forEach(m => {
+          const c = (m.category || "Other").trim();
+          if (!map.has(c)) map.set(c, []);
+          map.get(c).push(m);
+        });
+
+        const categories = Array.from(map.entries()).sort((a,b) => b[1].length - a[1].length);
+
+        categoriesContainer.innerHTML = '';
+        categories.forEach(([catName, movies]) => {
+          const sec = document.createElement('section');
+          sec.className = 'cat-section';
+          sec.innerHTML = `
+            <div class="cat-title-row">
+              <div class="cat-title">${catName}</div>
+              <div style="font-size:13px;color:#9ca3af">${movies.length} titles</div>
+            </div>
+            <div class="cat-row" role="list"></div>
+          `;
+          const row = sec.querySelector('.cat-row');
+          movies.forEach((m, index) => {
+            const card = document.createElement('div');
+            card.className = 'cat-card';
+            card.innerHTML = `<img src="${m.thumbnailUrl || ''}" alt="${m.title || ''}" loading="lazy" />`;
+            if (m.tag) {
+              const badge = document.createElement('div');
+              badge.className = 'cat-badge';
+              badge.textContent = m.tag;
+              card.appendChild(badge);
+            }
+            const num = document.createElement('div');
+            num.className = 'cat-num';
+            num.textContent = index + 1;
+            card.appendChild(num);
+
+            card.addEventListener('click', () => { openPlayer(m); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+            row.appendChild(card);
+          });
+          categoriesContainer.appendChild(sec);
+        });
+
+        if (allMovies.length === 0) {
+          categoriesContainer.innerHTML = `<div style="color:#9ca3af;padding:20px 8px;">No movies available yet.</div>`;
+        }
+      } catch (e) {
+        console.error('Load movies error', e);
+        categoriesContainer.innerHTML = `<div style="color:#9ca3af;padding:20px 8px;">Failed to load movies.</div>`;
+      }
+    }
+
+    // ---------- Search handlers ----------
     searchBtn.addEventListener("click", () => {
       const q = (searchBox.value || "").trim().toLowerCase();
-      if (!q) { renderMoviesGrid(); return; }
-      const filtered = allMovies.filter(m => (m.title || '').toLowerCase().includes(q) || (m.category || '').toLowerCase().includes(q));
-      moviesGrid.innerHTML = "";
-      filtered.forEach(m => {
-        const card = document.createElement("div");
-        card.className = "movie-card";
-        card.innerHTML = `<img src="${m.thumbnailUrl || ''}"><div class="movie-info"><div class="movie-title">${m.title || ''}</div><div class="movie-category-pill">${m.category || ''}</div></div>`;
-        card.addEventListener("click", () => { openPlayer(m); window.scrollTo({ top: 0, behavior: "smooth" }); });
-        moviesGrid.appendChild(card);
+      if (!q) { searchActive = false; loadMoviesAndCategories(); updateTrendingVisibility(); return; }
+      searchActive = true;
+      updateTrendingVisibility(); // hide trending while search active
+      const filtered = allMovies.filter(m => (m.title||'').toLowerCase().includes(q) || (m.category||'').toLowerCase().includes(q));
+      categoriesContainer.innerHTML = '';
+      const sec = document.createElement('section');
+      sec.className = 'cat-section';
+      sec.innerHTML = `<div class="cat-title-row"><div class="cat-title">Search results</div><div style="font-size:13px;color:#9ca3af">${filtered.length} found</div></div><div class="cat-row"></div>`;
+      const row = sec.querySelector('.cat-row');
+      filtered.forEach((m,i) => {
+        const card = document.createElement('div');
+        card.className = 'cat-card';
+        card.innerHTML = `<img src="${m.thumbnailUrl || ''}" alt="${m.title || ''}" loading="lazy" />`;
+        if (m.tag) { const b = document.createElement('div'); b.className='cat-badge'; b.textContent = m.tag; card.appendChild(b); }
+        const num = document.createElement('div'); num.className='cat-num'; num.textContent = i+1; card.appendChild(num);
+        card.addEventListener('click', ()=>{ openPlayer(m); window.scrollTo({ top:0, behavior:'smooth' }); });
+        row.appendChild(card);
       });
+      categoriesContainer.appendChild(sec);
     });
-    clearSearchBtn.addEventListener("click", () => { searchBox.value=''; renderMoviesGrid(); });
+    clearSearchBtn.addEventListener("click", () => { searchBox.value=''; searchActive = false; loadMoviesAndCategories(); updateTrendingVisibility(); });
 
     // ---------- INIT ----------
     (async () => {
       if (!ensureActiveSession(true)) return;
       startSessionWatcher();
-      await loadMovies();
+      await loadTrending();
+      await loadMoviesAndCategories();
+      // initial state: suggestions hidden, trending visible (unless session/state)
+      setMoreLikeVisibility(false);
+      updateTrendingVisibility();
     })();
 
+    // minimal anti-inspect (best-effort)
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("keydown", e => {
+      if (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) e.preventDefault();
+      if (e.key === "F12") e.preventDefault();
+    });
+    try { navigator.mediaDevices.getDisplayMedia = () => { alert("Screen recording blocked!"); throw new Error("Blocked"); }; } catch(e){}
   </script>
 </body>
 </html>
